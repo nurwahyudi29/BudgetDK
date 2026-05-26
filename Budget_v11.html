@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budgetku - Fixed Layout & UX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #f0f3f5;
+            --card-color: #ffffff;
+            --text-main: #2d3748;
+            --primary: #4a00e0;
+            --secondary: #8e2de2;
+            --danger: #e53e3e;
+            --success: #38a169;
+            --warning: #dd6b20;
+            --info: #3182ce;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .section-card {
+            background: var(--card-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; color: #4a5568; display: flex; align-items: center; gap: 8px; }
+
+        /* KOTAK FILTER BULAN & RESET */
+        .period-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .period-picker {
+            display: flex;
+            gap: 10px;
+        }
+        .period-picker select {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+        .btn-reset-month {
+            background: none;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-reset-month:hover {
+            background: #fff5f5;
+        }
+
+        /* KOTAK 1 */
+        .box-summary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        .box-summary h2 { color: white; }
+        .summary-item { margin-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 10px; }
+        .summary-item:last-child { margin-bottom: 0; border: none; padding-bottom: 0; }
+        .summary-item span { font-size: 0.8rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-item p { font-size: 1.6rem; font-weight: 600; }
+        .estafet-info { font-size: 0.75rem; color: #fffb00; margin-top: 2px; font-style: italic; display: block; }
+
+        /* KOTAK 2 - TOTAL BLOCK DI BAWAH */
+        .budget-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+        .budget-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #edf2f7; }
+        .budget-row:last-child { border: none; margin-bottom: 0; padding-bottom: 0; }
+        .category-name { font-size: 0.9rem; font-weight: 600; }
+        .category-value { font-size: 0.85rem; color: #718096; text-align: right; line-height: 1.5; }
+        .btn-edit-budget { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.9rem; margin-left: 6px; vertical-align: middle; padding: 2px 5px; }
+        
+        /* Area Kontrol Aksi (Fix Kebawah Turun Total) */
+        .budget-actions-area {
+            border-top: 1px dashed #cbd5e0;
+            padding-top: 15px;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Jarak vertikal antar elemen */
+        }
+        .add-cate-row { 
+            display: flex; 
+            flex-direction: column; /* Ubah ke bawah agar tidak memakan ruang samping */
+            gap: 8px; 
+            width: 100%; 
+        }
+        .add-cate-row input { width: 100%; padding: 11px 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        .add-cate-row button { width: 100%; background: var(--primary); color: white; border: none; padding: 11px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-weight: 600; }
+        
+        .btn-reset-budget-only { 
+            width: 100%;
+            background: #edf2f7; 
+            color: var(--danger); 
+            border: 1px solid #cbd5e0; 
+            padding: 11px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-reset-budget-only:hover { background: #fee2e2; }
+
+        /* KOTAK 3 & 4 */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px; color: #718096; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        
+        .btn-submit { width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+        .btn-expense { background: var(--danger); }
+        .btn-income { background: var(--success); }
+        
+        .alert-warning { display: none; background: #fff5f5; color: var(--danger); border: 1px solid #fed7d7; padding: 10px; border-radius: 8px; font-size: 0.8rem; margin-top: 10px; font-weight: 600; }
+
+        .tx-history-title { margin-top: 20px; border-top: 1px solid #edf2f7; padding-top: 15px; font-size: 0.95rem; }
+        
+        /* FIX TOTAL JEMPOL SCROLL MUTASI (LOCK UP & DOWN) */
+        .tx-history-container { 
+            max-height: 220px; 
+            overflow-y: auto; 
+            overscroll-behavior-y: contain; 
+            touch-action: pan-y;            
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 0 12px;
+            background: #fafbfc;
+        }
+        .tx-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
+        .tx-item:last-child { border: none; }
+        .tx-info { flex: 1; padding-right: 10px; }
+        .tx-amount-area { display: flex; align-items: center; gap: 12px; text-align: right; }
+        .btn-delete-tx { background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 1rem; padding: 6px; transition: color 0.2s; }
+        .btn-delete-tx:hover { color: var(--danger); }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="section-card">
+            <h2><i class="fas fa-calendar-alt" style="color: var(--primary)"></i> Periode Anggaran</h2>
+            <div class="period-container">
+                <div class="period-picker">
+                    <select id="select-month" onchange="changePeriod()">
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                    <select id="select-year" onchange="changePeriod()">
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                </div>
+                <button class="btn-reset-month" onclick="resetAllCurrentMonthData()">
+                    <i class="fas fa-sync-alt"></i> Reset Anggaran & Transaksi Bulan Ini
+                </button>
+            </div>
+        </div>
+
+        <div class="section-card box-summary">
+            <h2><i class="fas fa-wallet"></i> Ringkasan Finansial</h2>
+            <div class="summary-item">
+                <span>⭐ Sisa Budget Aktif Bulan Ini</span>
+                <p id="remaining-budget" style="font-size: 1.8rem; color: #fffb00;">Rp 0</p>
+            </div>
+            <div class="summary-item">
+                <span>📊 Total Budget Bulan Ini</span>
+                <p id="total-budget">Rp 0</p>
+            </div>
+            <div class="summary-item">
+                <span>💰 Total Uang Tabungan Keseluruhan</span>
+                <p id="total-savings">Rp 0</p>
+                <span id="info-estafet-savings" class="estafet-info"></span>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2><i class="fas fa-sliders-h"></i> Alokasi Pos Budget</h2>
+            <div class="budget-grid" id="budget-list-container">
+                </div>
+            
+            <div class="budget-actions-area">
+                <div class="add-cate-row">
+                    <input type="text" id="new-category-name" placeholder="Ketik nama kategori baru...">
+                    <button onclick="addNewCategory()"><i class="fas fa-plus"></i> Tambah Kategori Baru</button>
+                </div>
+                <button class="btn-reset-budget-only" onclick="resetBudgetsToZero()">
+                    <i class="fas fa-eraser"></i> Nol-kan Semua Nominal Anggaran Bulan Ini
+                </button>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2><i class="fas fa-minus-circle" style="color: var(--danger)"></i> Catat Pengeluaran</h2>
+            <form id="expense-form" onsubmit="saveExpense(event)">
+                <div class="form-group">
+                    <label>Pilih Pos Kategori</label>
+                    <select id="exp-category" onchange="checkBudgetStatus()">
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label>Nominal Pengeluaran (Rp)</label>
+                    <input type="text" id="exp-amount" required placeholder="Contoh: 50.000" oninput="handleAmountInput(this); checkBudgetStatus();">
+                </div>
+                <div class="form-group">
+                    <label>Catatan / Keterangan</label>
+                    <input type="text" id="exp-note" required placeholder="Contoh: Belanja bumbu dapur">
+                </div>
+                <button type="submit" class="btn-submit btn-expense">Simpan Pengeluaran</button>
+                
+                <div class="alert-warning" id="budget-alert">
+                    <i class="fas fa-exclamation-triangle"></i> Peringatan: Budget pos ini hampir habis!
+                </div>
+            </form>
+        </div>
+
+        <div class="section-card">
+            <h2><i class="fas fa-plus-circle" style="color: var(--success)"></i> Rezeki Tambahan</h2>
+            <form id="income-form" onsubmit="saveIncome(event)">
+                <div class="form-group">
+                    <label>Nominal Uang Tambahan (Rp)</label>
+                    <input type="text" id="inc-amount" required placeholder="Contoh: 500.000" oninput="handleAmountInput(this)">
+                </div>
+                <div class="form-group">
+                    <label>Sumber / Keterangan</label>
+                    <input type="text" id="inc-note" required placeholder="Contoh: Bonus proyek">
+                </div>
+                <button type="submit" class="btn-submit btn-income">Tambah ke Budget</button>
+            </form>
+
+            <h3 class="tx-history-title">Riwayat Mutasi Bulan Ini</h3>
+            <div class="tx-history-container" id="tx-history-list">
+                </div>
+        </div>
+
+    </div>
+
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:12px;">Ubah Plafon Budget</h3>
+            <p id="edit-modal-title" style="font-size:0.9rem; margin-bottom:10px; font-weight:600;"></p>
+            <input type="text" id="edit-modal-amount" style="width:100%; padding:10px; border:1px solid #cbd5e0; border-radius:8px;" placeholder="Masukkan budget baru" oninput="handleAmountInput(this)">
+            <div class="modal-btns">
+                <button onclick="closeEditModal()" style="background:#e2e8f0;">Batal</button>
+                <button id="btn-save-modal" style="background:var(--primary); color:white;">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultCategories = {
+            "Masak": 1500000,
+            "Bensin": 400000,
+            "Jajan": 500000,
+            "Listrik": 300000,
+            "Selular": 150000,
+            "Nabung": 1000000
+        };
+
+        let globalDatabase = {}; 
+        let currentMonth = 5;
+        let currentYear = 2026;
+
+        function initApp() {
+            const hariIni = new Date();
+            currentMonth = hariIni.getMonth() + 1;
+            currentYear = hariIni.getFullYear();
+
+            document.getElementById('select-month').value = currentMonth;
+            document.getElementById('select-year').value = currentYear;
+
+            const saved = localStorage.getItem('budgetku_database_v12');
+            if (saved) {
+                globalDatabase = JSON.parse(saved);
+            }
+            
+            loadPeriodData(currentMonth, currentYear);
+        }
+
+        function saveGlobalData() {
+            localStorage.setItem('budgetku_database_v12', JSON.stringify(globalDatabase));
+        }
+
+        function loadPeriodData(month, year) {
+            const key = `${year}-${month}`;
+            if (!globalDatabase[key]) {
+                globalDatabase[key] = {
+                    categories: {...defaultCategories},
+                    expenses: [],
+                    incomes: []
+                };
+                saveGlobalData();
+            }
+            updateUI();
+        }
+
+        window.changePeriod = function() {
+            currentMonth = parseInt(document.getElementById('select-month').value);
+            currentYear = parseInt(document.getElementById('select-year').value);
+            loadPeriodData(currentMonth, currentYear);
+        }
+
+        // NOL-KAN NOMINAL BUDGET SAJA DI KOTAK 2
+        window.resetBudgetsToZero = function() {
+            const key = `${currentYear}-${currentMonth}`;
+            const monthName = document.getElementById('select-month').options[document.getElementById('select-month').selectedIndex].text;
+            
+            if (confirm(`Apakah kamu yakin ingin meng-nol-kan (Rp 0) semua nominal anggaran untuk periode ${monthName} ${currentYear}? (Daftar nama kategori tidak akan dihapus)`)) {
+                for (let cat in globalDatabase[key].categories) {
+                    globalDatabase[key].categories[cat] = 0;
+                }
+                saveGlobalData();
+                updateUI();
+            }
+        }
+
+        // RESET BULANAN TOTAL (ANGGARAN & TRANSAKSI)
+        window.resetAllCurrentMonthData = function() {
+            const key = `${currentYear}-${currentMonth}`;
+            const monthName = document.getElementById('select-month').options[document.getElementById('select-month').selectedIndex].text;
+            
+            if (confirm(`Apakah kamu yakin ingin menghapus semua mutasi transaksi dan mengembalikan setting budget ke standar awal khusus untuk periode ${monthName} ${currentYear}?`)) {
+                globalDatabase[key] = {
+                    categories: {...defaultCategories},
+                    expenses: [],
+                    incomes: []
+                };
+                saveGlobalData();
+                updateUI();
+                alert(`Data periode ${monthName} ${currentYear} berhasil dibersihkan.`);
+            }
+        }
+
+        // HAPUS SATUAN TRANSAKSI MUTASI
+        window.deleteTransaction = function(type, id) {
+            const key = `${currentYear}-${currentMonth}`;
+            if (confirm("Hapus catatan transaksi ini?")) {
+                if (type === 'expense') {
+                    globalDatabase[key].expenses = globalDatabase[key].expenses.filter(e => e.id !== id);
+                } else if (type === 'income') {
+                    globalDatabase[key].incomes = globalDatabase[key].incomes.filter(i => i.id !== id);
+                }
+                saveGlobalData();
+                updateUI();
+            }
+        }
+
+        // REKURSIF ESTAFET TABUNGAN
+        function getPreviousFinancialLimpahan(month, year) {
+            let prevMonth = month - 1;
+            let prevYear = year;
+            if (prevMonth === 0) {
+                prevMonth = 12;
+                prevYear = year - 1;
+            }
+            
+            const key = `${prevYear}-${prevMonth}`;
+            const prevData = globalDatabase[key];
+
+            if (!prevData) {
+                return { sisaBudgetLaluMasukTabungan: 0, totalTabunganKumulatifLalu: 0 };
+            }
+
+            let baseBudgetLalu = 0;
+            for (let cat in prevData.categories) {
+                baseBudgetLalu += prevData.categories[cat];
+            }
+            let incomeLalu = prevData.incomes.reduce((s, i) => s + i.amount, 0);
+            let expenseLalu = prevData.expenses.reduce((s, e) => s + e.amount, 0);
+            
+            let mataRantaiLampau = getPreviousFinancialLimpahan(prevMonth, prevYear);
+
+            let sisaBudgetLalu = (baseBudgetLalu + incomeLalu) - expenseLalu;
+            if(sisaBudgetLalu < 0) sisaBudgetLalu = 0; 
+
+            let tabunganMurniBulanLalu = prevData.expenses
+                .filter(e => e.category.toLowerCase() === 'nabung')
+                .reduce((s, e) => s + e.amount, 0);
+
+            let totalTabunganKumulatifLalu = mataRantaiLampau.sisaBudgetLaluMasukTabungan + mataRantaiLampau.totalTabunganKumulatifLalu;
+
+            return {
+                sisaBudgetLaluMasukTabungan: sisaBudgetLalu,
+                totalTabunganKumulatifLalu: tabunganMurniBulanLalu + totalTabunganKumulatifLalu
+            };
+        }
+
+        function handleAmountInput(element) {
+            let value = element.value.replace(/[^0-9]/g, '');
+            element.value = value ? parseInt(value).toLocaleString('id-ID') : '';
+        }
+
+        function cleanThousandSeparator(formattedStr) {
+            return parseFloat(formattedStr.replace(/\./g, '')) || 0;
+        }
+
+        function formatRupiah(num) {
+            const isMinus = num < 0;
+            const absoluteValue = Math.abs(parseInt(num) || 0);
+            return (isMinus ? '-Rp ' : 'Rp ') + absoluteValue.toLocaleString('id-ID');
+        }
+
+        function updateUI() {
+            const key = `${currentYear}-${currentMonth}`;
+            const activeData = globalDatabase[key];
+            const riwayatLalu = getPreviousFinancialLimpahan(currentMonth, currentYear);
+
+            // 1. Sisa Budget Aktif
+            let baseBudget = 0;
+            for (let cat in activeData.categories) {
+                baseBudget += activeData.categories[cat];
+            }
+            let totalIncome = activeData.incomes.reduce((sum, item) => sum + item.amount, 0);
+            
+            let totalBudgetCalculated = baseBudget + totalIncome;
+            document.getElementById('total-budget').innerText = formatRupiah(totalBudgetCalculated);
+
+            let totalAllExpenses = activeData.expenses.reduce((sum, item) => sum + item.amount, 0);
+            let remainingBudget = totalBudgetCalculated - totalAllExpenses;
+            document.getElementById('remaining-budget').innerText = formatRupiah(remainingBudget);
+
+            // 2. Akumulasi Tabungan
+            let tabunganMurniBulanIni = activeData.expenses
+                .filter(e => e.category.toLowerCase() === 'nabung')
+                .reduce((sum, item) => sum + item.amount, 0);
+                
+            let totalSavingsCalculated = riwayatLalu.sisaBudgetLaluMasukTabungan + riwayatLalu.totalTabunganKumulatifLalu + tabunganMurniBulanIni;
+            document.getElementById('total-savings').innerText = formatRupiah(totalSavingsCalculated);
+            
+            let totalLimpahanLalu = riwayatLalu.sisaBudgetLaluMasukTabungan + riwayatLalu.totalTabunganKumulatifLalu;
+            if(totalLimpahanLalu > 0) {
+                document.getElementById('info-estafet-savings').innerText = `*Limpahan bulan lalu: ${formatRupiah(totalLimpahanLalu)} (Sisa Budget: ${formatRupiah(riwayatLalu.sisaBudgetLaluMasukTabungan)} + Tabungan: ${formatRupiah(riwayatLalu.totalTabunganKumulatifLalu)})`;
+            } else {
+                document.getElementById('info-estafet-savings').innerText = '';
+            }
+
+            // B. RENDER DAFTAR KATEGORI
+            const budgetContainer = document.getElementById('budget-list-container');
+            const selectCategory = document.getElementById('exp-category');
+            
+            let currentSelected = selectCategory.value;
+            budgetContainer.innerHTML = '';
+            selectCategory.innerHTML = '';
+
+            for (let cat in activeData.categories) {
+                let totalUsedInCat = activeData.expenses.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
+                let remainingInCat = activeData.categories[cat] - totalUsedInCat;
+                let remainingColor = remainingInCat < 0 ? 'color: var(--danger); font-weight:600;' : 'color: #718096;';
+
+                const row = document.createElement('div');
+                row.className = 'budget-row';
+                row.innerHTML = `
+                    <div class="category-name">${cat}</div>
+                    <div class="category-value">
+                        <strong>${formatRupiah(activeData.categories[cat])}</strong>
+                        <button class="btn-edit-budget" onclick="openEditModal('${cat}', ${activeData.categories[cat]})"><i class="fas fa-edit"></i></button>
+                        <br><small style="color:#a0aec0">Pakai: ${formatRupiah(totalUsedInCat)}</small>
+                        <br><small style="${remainingColor}">Sisa: ${formatRupiah(remainingInCat)}</small>
+                    </div>
+                `;
+                budgetContainer.appendChild(row);
+
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                selectCategory.appendChild(opt);
+            }
+            
+            if(currentSelected && activeData.categories[currentSelected]) {
+                selectCategory.value = currentSelected;
+            }
+
+            // C. RENDER RIWAYAT MUTASI DENGAN SCROLL LOCK
+            const historyContainer = document.getElementById('tx-history-list');
+            historyContainer.innerHTML = '';
+            
+            let combinedMutasi = [
+                ...activeData.expenses.map(e => ({...e, type: 'expense'})),
+                ...activeData.incomes.map(i => ({...i, type: 'income', category: 'Rezeki Tambahan'}))
+            ];
+
+            if (combinedMutasi.length === 0) {
+                historyContainer.innerHTML = '<p style="text-align:center; color:#a0aec0; font-size:0.8rem; padding:20px 10px;">Belum ada riwayat mutasi di bulan ini.</p>';
+            } else {
+                combinedMutasi.sort((a,b) => b.id - a.id).forEach(item => {
+                    const tx = document.createElement('div');
+                    tx.className = 'tx-item';
+                    
+                    if (item.type === 'expense') {
+                        tx.innerHTML = `
+                            <div class="tx-info">
+                                <strong>${item.note}</strong><br>
+                                <small style="color:#a0aec0">${item.category}</small>
+                            </div>
+                            <div class="tx-amount-area">
+                                <span style="color:var(--danger); font-weight:600">- ${formatRupiah(item.amount)}</span>
+                                <button class="btn-delete-tx" onclick="deleteTransaction('expense', ${item.id})" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        tx.innerHTML = `
+                            <div class="tx-info">
+                                <strong>${item.note}</strong><br>
+                                <small style="color:var(--success)">✨ ${item.category}</small>
+                            </div>
+                            <div class="tx-amount-area">
+                                <span style="color:var(--success); font-weight:600">+ ${formatRupiah(item.amount)}</span>
+                                <button class="btn-delete-tx" onclick="deleteTransaction('income', ${item.id})" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        `;
+                    }
+                    historyContainer.appendChild(tx);
+                });
+            }
+            checkBudgetStatus();
+        }
+
+        // WARNING MERAH LIVE
+        window.checkBudgetStatus = function() {
+            const key = `${currentYear}-${currentMonth}`;
+            const activeData = globalDatabase[key];
+            const selectedCat = document.getElementById('exp-category').value;
+            const inputAmount = cleanThousandSeparator(document.getElementById('exp-amount').value);
+            const alertBox = document.getElementById('budget-alert');
+
+            if (!selectedCat || !activeData) return;
+
+            const maxBudget = activeData.categories[selectedCat] || 0;
+            let alreadySpent = activeData.expenses.filter(e => e.category === selectedCat).reduce((s, e) => s + e.amount, 0);
+            let predictedTotal = alreadySpent + inputAmount;
+
+            if (maxBudget > 0 && (predictedTotal >= (maxBudget * 0.9))) {
+                alertBox.style.display = 'block';
+                alertBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Peringatan: Pengeluaran untuk <strong>${selectedCat}</strong> akan mencapai ${Math.round((predictedTotal/maxBudget)*100)}% dari batas budget (${formatRupiah(maxBudget)})!`;
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        window.addNewCategory = function() {
+            const key = `${currentYear}-${currentMonth}`;
+            const nameInput = document.getElementById('new-category-name');
+            const name = nameInput.value.trim();
+            if(!name) return;
+
+            if(!globalDatabase[key].categories[name]) {
+                globalDatabase[key].categories[name] = 0;
+                saveGlobalData();
+                updateUI();
+            }
+            nameInput.value = '';
+        }
+
+        window.openEditModal = function(catName, currentVal) {
+            document.getElementById('edit-modal-title').innerText = `Kategori: ${catName}`;
+            document.getElementById('edit-modal-amount').value = currentVal.toLocaleString('id-ID');
+            document.getElementById('edit-modal').style.display = 'flex';
+            
+            document.getElementById('btn-save-modal').onclick = function() {
+                const key = `${currentYear}-${currentMonth}`;
+                const newVal = cleanThousandSeparator(document.getElementById('edit-modal-amount').value);
+                globalDatabase[key].categories[catName] = newVal;
+                saveGlobalData();
+                updateUI();
+                closeEditModal();
+            };
+        }
+
+        window.closeEditModal = function() {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        window.saveExpense = function(e) {
+            e.preventDefault();
+            const key = `${currentYear}-${currentMonth}`;
+            const category = document.getElementById('exp-category').value;
+            const amount = cleanThousandSeparator(document.getElementById('exp-amount').value);
+            const note = document.getElementById('exp-note').value;
+
+            if(!category || amount <= 0 || !note) return;
+
+            globalDatabase[key].expenses.push({ id: Date.now(), category, amount, note });
+            saveGlobalData();
+            updateUI();
+
+            document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-note').value = '';
+            document.getElementById('budget-alert').style.display = 'none';
+        }
+
+        window.saveIncome = function(e) {
+            e.preventDefault();
+            const key = `${currentYear}-${currentMonth}`;
+            const amount = cleanThousandSeparator(document.getElementById('inc-amount').value);
+            const note = document.getElementById('inc-note').value;
+
+            if(amount <= 0 || !note) return;
+
+            globalDatabase[key].incomes.push({ id: Date.now(), amount, note });
+            saveGlobalData();
+            updateUI();
+
+            document.getElementById('inc-amount').value = '';
+            document.getElementById('inc-note').value = '';
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
